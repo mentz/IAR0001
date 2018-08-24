@@ -1,0 +1,7 @@
+Basicamente aqui temos o ACO base pronto
+
+Essa versão conta com:
+    1. Mapa básico com as posições das formigas mortas
+    2. Classe das formigas funcionando até que direito
+    3. Formigas andando e calculando as probabilidades de pegar e soltar as amiguinhas
+    4. Diferenciação entre formiga carregando nada e formiga carregando algo
