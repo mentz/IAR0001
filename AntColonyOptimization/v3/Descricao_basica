@@ -1,0 +1,5 @@
+ACO v3:
+Felipe Weiss, Lucas Litter Mentz
+
+- Interface gráfica em thread separado
+- Paralelização dos agentes (formigas)
