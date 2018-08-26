@@ -15,7 +15,7 @@ uniform_real_distribution<> g_dist(0, 1);
 
 // Essa parte pode ser atualizada com argumentos passados pelo terminal
 int NUM_FORMIGAS = 100, TAM_MAPA = 100, NUM_FORMIGAS_MORTAS = 2000;
-int W_WINDOW = 640, H_WINDOW = 480;
+int W_WINDOW = 800, H_WINDOW = W_WINDOW;
 
 // Tamanho da vizinhanca que a formiga enxerga
 int visao = 1;
@@ -100,9 +100,9 @@ class Mapa {
 			int cnt = 0;
 			for(int y = -visao; y <= visao; y++){
 				for(int x = -visao; x <= visao; x++){
-					int yy = y + i;
-					int xx = x + j;
-					if(valid(yy, xx) && this -> mapa[yy][xx] == 1) cnt++;
+					int yy = y + i; yy %= n; if (yy < 0) yy += n;
+					int xx = x + j; xx %= m; if (xx < 0) xx += m;
+					if(this -> mapa[yy][xx] == 1) cnt++;
 				}
 			}
 			return cnt;
@@ -201,8 +201,8 @@ void Formiga::move()
 {
 	// Mover-se em qualquer direção (se for para fora do alcance
 	//  apenas fica na mesma posição do quadro)
-	int dir = int(this->getRandom() * 8);
-	// 0,1,2,3,4,5,6,7 -> Cima,Direita,Baixo,Esquerda,CE,CD,BD,BE
+	int dir = int(this->getRandom() * 9);
+	// 0,1,2,3,4,5,6,7,8 -> Cima,Direita,Baixo,Esquerda,CE,CD,BD,BE,Parado
 	switch (dir) {
 		case 0: this->setPos(y-1, x); break;
 		case 1: this->setPos(y, x+1); break;
@@ -212,6 +212,7 @@ void Formiga::move()
 		case 5: this->setPos(y-1, x+1); break;
 		case 6: this->setPos(y+1, x+1); break;
 		case 7: this->setPos(y+1, x-1); break;
+		case 8: break;
 	}
 	this->validatePos();
 }
@@ -259,7 +260,7 @@ void drawGrid(sf::RenderWindow &window, Mapa *mapa, vector<Formiga *> &formigas)
 	// Tamanho do retangulo do grid
 	float D_W_SPACE = W_WINDOW / (float)TAM_MAPA;
 	float D_H_SPACE = H_WINDOW / (float)TAM_MAPA;
-	float D_RAD = (MIN(D_H_SPACE, D_W_SPACE) * 0.495);
+	float D_RAD = (MIN(D_H_SPACE, D_W_SPACE) * 0.5);
 	sf::CircleShape dot(D_RAD);
 	//rect.setOutlineThickness(0.75f);
 	//rect.setOutlineColor(sf::Color::Black);
@@ -275,20 +276,20 @@ void drawGrid(sf::RenderWindow &window, Mapa *mapa, vector<Formiga *> &formigas)
 			if(_mapa[i][j] == 0){
 				dot.setFillColor(sf::Color(232,232,232));
 			} else if(_mapa[i][j] == 1){
-				dot.setFillColor(sf::Color(150,150,150));
+				dot.setFillColor(sf::Color::Black);
 			}
 			window.draw(dot);
 		}
 	}
 
-	// Desenhando as formigas vivas (RED -> Carregando algo | Black -> Carregando nada)
+	// Desenhando as formigas vivas (Green -> Carregando algo | Red -> Carregando nada)
 	for(int i = 0; i < NUM_FORMIGAS; i++){
 		pair<int,int> pos = formigas[i] -> getPos();
 		dot.setPosition(D_W_SPACE * pos.first, D_H_SPACE * pos.second);
 		if(formigas[i] -> getCarry()){
-			dot.setFillColor(sf::Color::Red);
+			dot.setFillColor(sf::Color::Green);
 		} else {
-			dot.setFillColor(sf::Color::Black);
+			dot.setFillColor(sf::Color::Red);
 		}
 		window.draw(dot);
 	}
@@ -326,7 +327,7 @@ int main() {
 							sf::Style::Titlebar);
 
 	// Set o framerate para 24 (cinema carai)
-	window.setFramerateLimit(0);
+	window.setFramerateLimit(60);
 	window.setVerticalSyncEnabled(false);
 
 	running = true;
