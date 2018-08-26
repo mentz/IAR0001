@@ -1,5 +1,10 @@
 ACO v3:
 Felipe Weiss, Lucas Litter Mentz
 
+Modificações em relação à v2:
 - Interface gráfica em thread separado
-- Paralelização dos agentes (formigas)
+- Paralelização dos agentes (formigas) com uso de mutex no mapa
+- Modificação do algoritmo de percepção de pegada/largada de itens das formigas:
+	Era: (qnt_itens/qnt_visao) + ruido
+	Agora: ((qnt_itens/qnt_visao) + ruido)^2)
+	Isso dá mais peso (quadrático) para a seleção de decisões favoráveis ao cenário, ainda mantendo a aleatoriedade como fator principal.
