@@ -14,7 +14,7 @@ mt19937 g_e(g_rd());
 uniform_real_distribution<> g_dist(0, 1);
 
 // Essa parte pode ser atualizada com argumentos passados pelo terminal
-int NUM_FORMIGAS = 200, TAM_MAPA = 200, NUM_FORMIGAS_MORTAS = 7000;
+int NUM_FORMIGAS = 200, TAM_MAPA = 100, NUM_FORMIGAS_MORTAS = 5000;
 int W_WINDOW = 800, H_WINDOW = W_WINDOW;
 
 // Tamanho da vizinhanca que a formiga enxerga
@@ -86,7 +86,7 @@ class Mapa {
 			this -> mapa[i][j] = v;
 		}
 
-		// Para imprimir o mapa na main com menos perda de performance
+		// Para imprimir o mapa na main
 		vector<vector<int> > &getMapa(){
 			return mapa;
 		}
@@ -258,57 +258,12 @@ void Formiga::runStep()
 	this->move();
 }
 
-// Desenha o grid '-'
-void drawGrid(sf::RenderWindow &window, Mapa *mapa, vector<Formiga *> &formigas){
-	// Tamanho do retangulo do grid
-	float D_W_SPACE = W_WINDOW / (float)TAM_MAPA;
-	float D_H_SPACE = H_WINDOW / (float)TAM_MAPA;
-	float D_RAD = (MIN(D_H_SPACE, D_W_SPACE) * 0.5);
-	sf::CircleShape dot(D_RAD);
-	//rect.setOutlineThickness(0.75f);
-	//rect.setOutlineColor(sf::Color::Black);
-	dot.setOrigin(sf::Vector2f(0,0));
-
-	globmut.lock();
-	// Mapa geral
-	vector<vector<int> > _mapa = mapa -> getMapa();
-
-	// Desenhando o mapa com as formigas mortas e os espaços livres
-	for(int j = 0; j < TAM_MAPA; j++){
-		for(int i = 0; i < TAM_MAPA; i++){
-			dot.setPosition(D_W_SPACE * i, D_H_SPACE * j);
-			if(_mapa[i][j] == 0){
-				dot.setFillColor(sf::Color(232,232,232));
-			} else {//if(_mapa[i][j] == 1){
-				dot.setFillColor(sf::Color::Black);
-			}
-			window.draw(dot);
-		}
-	}
-
-	// Desenhando as formigas vivas (Green -> Carregando algo | Red -> Carregando nada)
-	for(int i = 0; i < NUM_FORMIGAS; i++){
-		pair<int,int> pos = formigas[i] -> getPos();
-		dot.setPosition(D_W_SPACE * pos.first, D_H_SPACE * pos.second);
-		if(formigas[i] -> getCarry()){
-			dot.setFillColor(sf::Color::Green);
-		} else {
-			dot.setFillColor(sf::Color::Red);
-		}
-		window.draw(dot);
-	}
-	globmut.unlock();
-}
-
 vector<Formiga *> formigas;
-
-void runFormigas(){
-	while (running == true)
-	{
+void runFormigas() {
+	while (running == true) {
 		globmut.lock();
 		#pragma omp parallel for
-		for (int i = 0; i < formigas.size(); i++)
-		{
+		for (int i = 0; i < formigas.size(); i++) {
 			formigas[i] -> runStep();
 		}
 		globmut.unlock();
@@ -320,11 +275,11 @@ void runFormigas(){
 int main() {
 	srand(time(NULL));
 	setVisao(1);
+
 	mapa = new Mapa(TAM_MAPA, TAM_MAPA);
 	mapa -> initMapa(NUM_FORMIGAS_MORTAS);
 
 	// Cria as formigas
-	//vector<Formiga *> formigas;
 	for(int i = 0; i < NUM_FORMIGAS; i++){
 		formigas.push_back(new Formiga());
 	}
@@ -336,7 +291,16 @@ int main() {
 	// Set o framerate para 24 (cinema carai)
 	window.setFramerateLimit(1);
 	window.setVerticalSyncEnabled(false);
+	
+	// Definições para desenho
+	float D_W_SPACE = W_WINDOW / (float)TAM_MAPA;
+	float D_H_SPACE = H_WINDOW / (float)TAM_MAPA;
+	float D_RAD = (MIN(D_H_SPACE, D_W_SPACE) * 0.5);
+	sf::CircleShape dot(D_RAD);
+	dot.setOrigin(sf::Vector2f(0,0));
+	vector<vector<int> > _mapa;
 
+	// Thread de processamento de formigas
 	running = true;
 	thread runThread (runFormigas);
 
@@ -355,7 +319,33 @@ int main() {
 		window.clear(sf::Color(40,40,40,255));
 
 		// Desenha o grid
-		drawGrid(window, mapa, formigas);
+		//drawGrid(window, mapa, formigas);
+		globmut.lock();
+		_mapa = mapa -> getMapa();
+		// Desenhando o mapa com as formigas mortas e os espaços livres
+		for(int j = 0; j < TAM_MAPA; j++){
+			for(int i = 0; i < TAM_MAPA; i++){
+				dot.setPosition(D_W_SPACE * i, D_H_SPACE * j);
+				if(_mapa[i][j] == 0){
+					dot.setFillColor(sf::Color(232,232,232));
+				} else {//if(_mapa[i][j] == 1){
+					dot.setFillColor(sf::Color::Black);
+				}
+				window.draw(dot);
+			}
+		}
+		// Desenhando as formigas vivas (Green -> Carregando algo | Red -> Carregando nada)
+		for(int i = 0; i < NUM_FORMIGAS; i++){
+			pair<int,int> pos = formigas[i] -> getPos();
+			dot.setPosition(D_W_SPACE * pos.first, D_H_SPACE * pos.second);
+			if(formigas[i] -> getCarry()){
+				dot.setFillColor(sf::Color::Green);
+			} else {
+				dot.setFillColor(sf::Color::Red);
+			}
+			window.draw(dot);
+		}
+		globmut.unlock();
 
 		window.display();
 	}
