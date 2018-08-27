@@ -14,7 +14,7 @@ mt19937 g_e(g_rd());
 uniform_real_distribution<> g_dist(0, 1);
 
 // Essa parte pode ser atualizada com argumentos passados pelo terminal
-int NUM_FORMIGAS = 100, TAM_MAPA = 100, NUM_FORMIGAS_MORTAS = 2000;
+int NUM_FORMIGAS = 200, TAM_MAPA = 200, NUM_FORMIGAS_MORTAS = 7000;
 int W_WINDOW = 800, H_WINDOW = W_WINDOW;
 
 // Tamanho da vizinhanca que a formiga enxerga
@@ -24,6 +24,7 @@ void updateAlcance(){alcance = (2 * visao + 1) * (2 * visao + 1) - 1;}
 void setVisao(int v){visao = v; updateAlcance();}
 
 bool running;
+mutex globmut;
 // Fim variáveis globais
 
 class Mapa {
@@ -37,7 +38,7 @@ class Mapa {
 		Mapa(int n, int m){
 			this -> n = n;
 			this -> m = m;
-			mapa.assign(n + 1, vector<int>(m + 1, 0));
+			mapa.assign(n, vector<int>(m, 0));
 			mmut = new mutex*[n];
 			for (int a=0;a<n;a++)
 				mmut[a] = new mutex[m];
@@ -226,7 +227,8 @@ void Formiga::runStep()
 		if (mapa -> getPos(y, x) == 1){
 			// obter vizinhança para cálculo de probabilidade
 			int viz = mapa -> getVizinhanca(y, x);
-			double prob = viz/(double) alcance - 0.01; prob *= prob;
+			double prob = viz/(double) alcance;
+			prob *= prob * 0.9995; prob += 0.00025;
 			if (this -> getRandom() > prob) {
 				setCarry(true);
 				mapa -> setPos(y, x, 0);
@@ -242,7 +244,8 @@ void Formiga::runStep()
 		if (mapa -> getPos(y, x) == 0){
 			// obter vizinhança para cálculo de probabilidade
 			int viz = mapa->getVizinhanca(y, x);
-			double prob = viz/(double) alcance + 0.01; prob *= prob;
+			double prob = viz/(double) alcance;
+			prob *= prob * 0.9995; prob += 0.00025;
 			if (this -> getRandom() < prob) {
 				setCarry(false);
 				mapa -> setPos(y, x, 1);
@@ -266,6 +269,7 @@ void drawGrid(sf::RenderWindow &window, Mapa *mapa, vector<Formiga *> &formigas)
 	//rect.setOutlineColor(sf::Color::Black);
 	dot.setOrigin(sf::Vector2f(0,0));
 
+	globmut.lock();
 	// Mapa geral
 	vector<vector<int> > _mapa = mapa -> getMapa();
 
@@ -275,7 +279,7 @@ void drawGrid(sf::RenderWindow &window, Mapa *mapa, vector<Formiga *> &formigas)
 			dot.setPosition(D_W_SPACE * i, D_H_SPACE * j);
 			if(_mapa[i][j] == 0){
 				dot.setFillColor(sf::Color(232,232,232));
-			} else if(_mapa[i][j] == 1){
+			} else {//if(_mapa[i][j] == 1){
 				dot.setFillColor(sf::Color::Black);
 			}
 			window.draw(dot);
@@ -293,6 +297,7 @@ void drawGrid(sf::RenderWindow &window, Mapa *mapa, vector<Formiga *> &formigas)
 		}
 		window.draw(dot);
 	}
+	globmut.unlock();
 }
 
 vector<Formiga *> formigas;
@@ -300,11 +305,13 @@ vector<Formiga *> formigas;
 void runFormigas(){
 	while (running == true)
 	{
+		globmut.lock();
 		#pragma omp parallel for
 		for (int i = 0; i < formigas.size(); i++)
 		{
 			formigas[i] -> runStep();
 		}
+		globmut.unlock();
 	}
 }
 
@@ -324,10 +331,10 @@ int main() {
 
 	// Cria a janela
 	sf::RenderWindow window(sf::VideoMode(W_WINDOW, H_WINDOW), "Formigavel :D",
-							sf::Style::Titlebar);
+							sf::Style::Titlebar | sf::Style::Close);
 
 	// Set o framerate para 24 (cinema carai)
-	window.setFramerateLimit(60);
+	window.setFramerateLimit(1);
 	window.setVerticalSyncEnabled(false);
 
 	running = true;
@@ -345,15 +352,7 @@ int main() {
 			}
 		}
 		// Limpa fundo
-		window.clear(sf::Color(255,255,255,255));
-	
-		/*
-		#pragma omp parallel for
-		for (int i = 0; i < formigas.size(); i++)
-		{
-			formigas[i] -> runStep();
-		}
-		*/
+		window.clear(sf::Color(40,40,40,255));
 
 		// Desenha o grid
 		drawGrid(window, mapa, formigas);
