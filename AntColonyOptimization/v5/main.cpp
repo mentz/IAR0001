@@ -40,6 +40,8 @@ sf::Color cores[] = {sf::Color(0xFFFFFFFF),
 					 sf::Color(0x00FF00FF), sf::Color(0xFFFF00FF),
 				 	 sf::Color(0x0000FFFF), sf::Color(0xFF00FFFF),
 					 sf::Color(0x0088FFFF), sf::Color(0xF4A460FF)};
+
+vector<Item> itens;
 // sf::Color cores[] = {sf::Color(255,255,255,255)
 //
 // }
@@ -50,7 +52,7 @@ mutex globmut;
 class Mapa {
 	private:
 		int n, m;
-		vector<vector<Item> > mapa;
+		vector<vector<int> > mapa;
 		mutex **mmut;
 		map<pair<int, int>, int> ff;
 	public:
@@ -58,7 +60,7 @@ class Mapa {
 		Mapa(int n, int m){
 			this -> n = n;
 			this -> m = m;
-			mapa.assign(n, vector<Item>(m));
+			mapa.assign(n, vector<int>(m, 0));
 			mmut = new mutex*[n];
 			for (int a=0;a<n;a++)
 				mmut[a] = new mutex[m];
@@ -75,17 +77,17 @@ class Mapa {
 
 		// Preenche o mapa com formigas mortas em posicoes aleatorias
 		void initMapa(int numFormigasMortas){
-			// while(numFormigasMortas > 0){
-			// 	int y = rand() % this -> n;
-			// 	int x = rand() % this -> m;
-			// 	while(this -> mapa[y][x]){
-			// 		y = rand() % this -> n;
-			// 		x = rand() % this -> m;
-			// 	}
-			// 	int tmp = (rand() % NUM_COR + 1);
-			// 	mapa[y][x] = tmp;
-			// 	numFormigasMortas--;
-			// }
+			while(numFormigasMortas > 0){
+				int y = rand() % this -> n;
+				int x = rand() % this -> m;
+				while(this -> mapa[y][x]){
+					y = rand() % this -> n;
+					x = rand() % this -> m;
+				}
+				int tmp = (rand() % NUM_COR + 1);
+				mapa[y][x] = tmp;
+				numFormigasMortas--;
+			}
 		}
 
 		// Bloqueia posição do mapa para controlar concorrência
@@ -99,16 +101,16 @@ class Mapa {
 		}
 
 		// Retorna o estado de uma celula do mapa
-		Item getPos(int i, int j){
+		int getPos(int i, int j){
 			return this -> mapa[i][j];
 		}
 		// Seta um valor numa posicao especifica do mapa
-		void setPos(int i, int j, Item v){
+		void setPos(int i, int j, int v){
 			this -> mapa[i][j] = v;
 		}
 
 		// Para imprimir o mapa na main
-		vector<vector<Item> > &getMapa(){
+		vector<vector<int> > &getMapa(){
 			return mapa;
 		}
 
@@ -118,15 +120,13 @@ class Mapa {
 		}
 
 		// Retorna quantas formigas mortas tem na vizinhanca da formiga atual
-		int getVizinhanca(int i, int j, Item item){
-			double cnt = 0;
+		int getVizinhanca(int i, int j, int color){
+			int cnt = 0;
 			for(int y = -VISAO; y <= VISAO; y++){
 				for(int x = -VISAO; x <= VISAO; x++){
 					int yy = y + i; yy %= n; if (yy < 0) yy += n;
 					int xx = x + j; xx %= m; if (xx < 0) xx += m;
-					if(!mapa[yy][xx].empty()){
-						cnt += mapa[yy][xx].calcDist(item);
-					}
+					if(this -> mapa[yy][xx] == color) cnt++;
 				}
 			}
 			return cnt;
