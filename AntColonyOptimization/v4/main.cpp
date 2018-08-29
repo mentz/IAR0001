@@ -26,11 +26,6 @@ void setVisao(int v){VISAO = v; updateAlcance();}
 // Cores: White,
 //        Black, Maroon, Green, Olive, Navy, Purple, Teal, Orange,
 //        Gray, Red, Lime, Yellow, Blue, Fuchsia, Aqua, Brown.
-// sf::Color cores[] = {{0xFFFFFFFF},
-// 					 {0x000000FF}, {0x880000FF}, {0x008800FF}, {0x888800FF},
-// 					 {0x000088FF}, {0x880088FF}, {0x008888FF}, {0xFF8800FF},
-// 				 	 {0x888888FF}, {0xFF0000FF}, {0x00FF00FF}, {0xFFFF00FF},
-// 				 	 {0x0000FFFF}, {0xFF00FFFF}, {0x0088FFFF}, {0xF4A460FF}};
 sf::Color cores[] = {sf::Color(0xFFFFFFFF),
 					 sf::Color(0x000000FF), sf::Color(0x880000FF),
 					 sf::Color(0x008800FF), sf::Color(0xAA8800FF),
@@ -40,9 +35,7 @@ sf::Color cores[] = {sf::Color(0xFFFFFFFF),
 					 sf::Color(0x00FF00FF), sf::Color(0xFFFF00FF),
 				 	 sf::Color(0x0000FFFF), sf::Color(0xFF00FFFF),
 					 sf::Color(0x0088FFFF), sf::Color(0xF4A460FF)};
-// sf::Color cores[] = {sf::Color(255,255,255,255)
-//
-// }
+
 bool running;
 mutex globmut;
 // Fim variáveis globais
@@ -50,7 +43,7 @@ mutex globmut;
 class Mapa {
 	private:
 		int n, m;
-		vector<vector<Item> > mapa;
+		vector<vector<int> > mapa;
 		mutex **mmut;
 		map<pair<int, int>, int> ff;
 	public:
@@ -58,7 +51,7 @@ class Mapa {
 		Mapa(int n, int m){
 			this -> n = n;
 			this -> m = m;
-			mapa.assign(n, vector<Item>(m));
+			mapa.assign(n, vector<int>(m, 0));
 			mmut = new mutex*[n];
 			for (int a=0;a<n;a++)
 				mmut[a] = new mutex[m];
@@ -75,17 +68,17 @@ class Mapa {
 
 		// Preenche o mapa com formigas mortas em posicoes aleatorias
 		void initMapa(int numFormigasMortas){
-			// while(numFormigasMortas > 0){
-			// 	int y = rand() % this -> n;
-			// 	int x = rand() % this -> m;
-			// 	while(this -> mapa[y][x]){
-			// 		y = rand() % this -> n;
-			// 		x = rand() % this -> m;
-			// 	}
-			// 	int tmp = (rand() % NUM_COR + 1);
-			// 	mapa[y][x] = tmp;
-			// 	numFormigasMortas--;
-			// }
+			while(numFormigasMortas > 0){
+				int y = rand() % this -> n;
+				int x = rand() % this -> m;
+				while(this -> mapa[y][x]){
+					y = rand() % this -> n;
+					x = rand() % this -> m;
+				}
+				int tmp = (rand() % NUM_COR + 1);
+				mapa[y][x] = tmp;
+				numFormigasMortas--;
+			}
 		}
 
 		// Bloqueia posição do mapa para controlar concorrência
@@ -99,16 +92,16 @@ class Mapa {
 		}
 
 		// Retorna o estado de uma celula do mapa
-		Item getPos(int i, int j){
+		int getPos(int i, int j){
 			return this -> mapa[i][j];
 		}
 		// Seta um valor numa posicao especifica do mapa
-		void setPos(int i, int j, Item v){
+		void setPos(int i, int j, int v){
 			this -> mapa[i][j] = v;
 		}
 
 		// Para imprimir o mapa na main
-		vector<vector<Item> > &getMapa(){
+		vector<vector<int> > &getMapa(){
 			return mapa;
 		}
 
@@ -118,15 +111,27 @@ class Mapa {
 		}
 
 		// Retorna quantas formigas mortas tem na vizinhanca da formiga atual
-		int getVizinhanca(int i, int j, Item item){
-			double cnt = 0;
+		// int getVizinhanca(int i, int j, int item){
+		// 	double cnt = 0;
+		// 	for(int y = -VISAO; y <= VISAO; y++){
+		// 		for(int x = -VISAO; x <= VISAO; x++){
+		// 			int yy = y + i; yy %= n; if (yy < 0) yy += n;
+		// 			int xx = x + j; xx %= m; if (xx < 0) xx += m;
+		// 			if(!mapa[yy][xx]){
+		// 				cnt += mapa[yy][xx].calcDist(item);
+		// 			}
+		// 		}
+		// 	}
+		// 	return cnt;
+		// }
+		// Retorna quantas formigas mortas tem na vizinhanca da formiga atual
+		int getVizinhanca(int i, int j, int item){
+			int cnt = 0;
 			for(int y = -VISAO; y <= VISAO; y++){
 				for(int x = -VISAO; x <= VISAO; x++){
 					int yy = y + i; yy %= n; if (yy < 0) yy += n;
 					int xx = x + j; xx %= m; if (xx < 0) xx += m;
-					if(!mapa[yy][xx].empty()){
-						cnt += mapa[yy][xx].calcDist(item);
-					}
+					if(this -> mapa[yy][xx] == item) cnt++;
 				}
 			}
 			return cnt;
@@ -176,7 +181,6 @@ private:
 	int x, y;
 	int carry;
 public:
-
 	Formiga()
 	{
 		this->x = rand() % mapa -> getN();
