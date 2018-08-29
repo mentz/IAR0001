@@ -52,7 +52,7 @@ mutex globmut;
 class Mapa {
 	private:
 		int n, m;
-		vector<vector<int> > mapa;
+		vector<vector<Item *> > mapa;
 		mutex **mmut;
 		map<pair<int, int>, int> ff;
 	public:
@@ -60,7 +60,7 @@ class Mapa {
 		Mapa(int n, int m){
 			this -> n = n;
 			this -> m = m;
-			mapa.assign(n, vector<int>(m, 0));
+			mapa.assign(n, vector<Item *>(m, NULL));
 			mmut = new mutex*[n];
 			for (int a=0;a<n;a++)
 				mmut[a] = new mutex[m];
@@ -76,17 +76,15 @@ class Mapa {
 		}
 
 		// Preenche o mapa com formigas mortas em posicoes aleatorias
-		void initMapa(int numFormigasMortas){
-			while(numFormigasMortas > 0){
+		void initMapa(vector<Item> &itens){
+			for(Item &i : itens)
 				int y = rand() % this -> n;
 				int x = rand() % this -> m;
 				while(this -> mapa[y][x]){
 					y = rand() % this -> n;
 					x = rand() % this -> m;
 				}
-				int tmp = (rand() % NUM_COR + 1);
-				mapa[y][x] = tmp;
-				numFormigasMortas--;
+				mapa[y][x] = i;
 			}
 		}
 
@@ -101,16 +99,16 @@ class Mapa {
 		}
 
 		// Retorna o estado de uma celula do mapa
-		int getPos(int i, int j){
+		Item * getPos(int i, int j){
 			return this -> mapa[i][j];
 		}
 		// Seta um valor numa posicao especifica do mapa
-		void setPos(int i, int j, int v){
+		void setPos(int i, int j, Item * v){
 			this -> mapa[i][j] = v;
 		}
 
 		// Para imprimir o mapa na main
-		vector<vector<int> > &getMapa(){
+		vector<vector<Item *> > &getMapa(){
 			return mapa;
 		}
 
@@ -120,13 +118,15 @@ class Mapa {
 		}
 
 		// Retorna quantas formigas mortas tem na vizinhanca da formiga atual
-		int getVizinhanca(int i, int j, int color){
-			int cnt = 0;
+		int getVizinhanca(int i, int j, Item *other){
+			double cnt = 0;
 			for(int y = -VISAO; y <= VISAO; y++){
 				for(int x = -VISAO; x <= VISAO; x++){
 					int yy = y + i; yy %= n; if (yy < 0) yy += n;
 					int xx = x + j; xx %= m; if (xx < 0) xx += m;
-					if(this -> mapa[yy][xx] == color) cnt++;
+					if(this -> mapa[yy][xx] != NULL){
+						cnt += this -> mapa[yy][xx] -> calcDist(other);
+					}
 				}
 			}
 			return cnt;
@@ -174,14 +174,14 @@ Mapa *mapa;
 class Formiga{
 private:
 	int x, y;
-	int carry;
+	Item *carry;
 public:
 
 	Formiga()
 	{
 		this->x = rand() % mapa -> getN();
 		this->y = rand() % mapa -> getM();
-		this->carry = 0;
+		this->carry = NULL;
 	}
 
 	// Seta a posicao da formiga
@@ -195,11 +195,11 @@ public:
 	}
 
 	// Seta se esta carregando ou nao uma formiga
-	void setCarry(int state){
-		this -> carry = state;
+	void setCarry(Item *item){
+		this -> carry = item;
 	}
 	// Retorna se a formiga esta ou nao carregando outra formiga
-	int getCarry(){
+	Item * getCarry(){
 		return this -> carry;
 	}
 
@@ -245,14 +245,14 @@ void Formiga::runStep()
 	// Se (não carrego) E (estou sobre formiga morta)
 	if (!this->carry){
 		mapa -> lockPos(y, x);
-		if (mapa -> getPos(y, x)){
+		if (mapa -> getPos(y, x) != NULL){
 			// obter vizinhança para cálculo de probabilidade
-			int viz = mapa -> getVizinhanca(y, x, mapa -> getPos(y, x));
+			double viz = mapa -> getVizinhanca(y, x, mapa -> getPos(y, x));
 			double prob = viz/(double) ALCANCE;
 			prob *= prob * 0.9995; prob += 0.00025;
 			if (this -> getRandom() > prob) {
 				setCarry(mapa -> getPos(y, x));
-				mapa -> setPos(y, x, 0);
+				mapa -> setPos(y, x, NULL);
 			}
 		}
 		mapa -> unlockPos(y, x);
@@ -262,14 +262,14 @@ void Formiga::runStep()
 	// Se (carrego) E (não estou sobre formiga morta)
 	else if (this->carry){
 		mapa -> lockPos(y, x);
-		if (mapa -> getPos(y, x) == 0){
+		if (mapa -> getPos(y, x) == NULL){
 			// obter vizinhança para cálculo de probabilidade
-			int viz = mapa->getVizinhanca(y, x, this -> carry);
+			double viz = mapa->getVizinhanca(y, x, this -> carry);
 			double prob = viz/(double) ALCANCE;
 			prob *= prob * 0.9995; prob += 0.00025;
 			if (this -> getRandom() < prob) {
 				mapa -> setPos(y, x, this -> carry);
-				setCarry(0);
+				setCarry(NULL);
 			}
 		}
 		mapa -> unlockPos(y, x);
@@ -300,12 +300,19 @@ int main() {
 	cin >> NUM_FORMIGAS_MORTAS;
 	cin >> NUM_FORMIGAS;
 	cin >> VISAO;
-	cin >> NUM_COR;
-
+	for(int i = 0; i < NUM_FORMIGAS_MORTAS; i++){
+		double x, y;
+		int tipo;
+		cin >> x >> y >> tipo;
+		vector<double> tmp;
+		tmp.push_back(x);
+		tmp.push_back(y);
+		itens.push_back(Item(cores[tipo], tmp));
+	}
 	setVisao(VISAO);
 
 	mapa = new Mapa(TAM_MAPA, TAM_MAPA);
-	mapa -> initMapa(NUM_FORMIGAS_MORTAS);
+	mapa -> initMapa(itens);
 
 	// Cria as formigas
 	for(int i = 0; i < NUM_FORMIGAS; i++){
@@ -328,7 +335,7 @@ int main() {
 	sf::CircleShape form(D_RAD);
 	dot.setOrigin(sf::Vector2f(0,0));
 	form.setOrigin(sf::Vector2f(0,0));
-	vector<vector<int> > _mapa;
+	vector<vector<Item *> > _mapa;
 
 	// Thread de processamento de formigas
 	running = true;
@@ -365,7 +372,9 @@ int main() {
 		for(int j = 0; j < TAM_MAPA; j++){
 			for(int i = 0; i < TAM_MAPA; i++){
 				dot.setPosition(D_W_SPACE * i, D_H_SPACE * j);
-				dot.setFillColor(cores[_mapa[i][j]]);
+				if(_mapa[i][j] != NULL){
+					dot.setFillColor(_mapa[i][j] -> getColor());
+				}
 				// if(_mapa[i][j] == 0){
 					// dot.setFillColor(sf::Color(232,232,232));
 				// } else {//if(_mapa[i][j] == 1){
@@ -383,7 +392,7 @@ int main() {
 		for(int i = 0; i < NUM_FORMIGAS; i++){
 			pair<int,int> pos = formigas[i] -> getPos();
 			form.setPosition(D_W_SPACE * pos.first, D_H_SPACE * pos.second);
-			if(formigas[i] -> getCarry()){
+			if(formigas[i] -> getCarry() != NULL){
 				form.setFillColor(sf::Color::Green);
 			} else {
 				form.setFillColor(sf::Color::Red);
