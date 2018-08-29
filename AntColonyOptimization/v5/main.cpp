@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
+#include "Item.hpp"
 
 using namespace std;
 
@@ -41,7 +42,7 @@ sf::Color cores[] = {sf::Color(0xFFFFFFFF),
 				 	 sf::Color(0x0000FFFF), sf::Color(0xFF00FFFF),
 					 sf::Color(0x0088FFFF), sf::Color(0xF4A460FF)};
 
-vector<Item> itens;
+vector<Item *> itens;
 // sf::Color cores[] = {sf::Color(255,255,255,255)
 //
 // }
@@ -76,8 +77,8 @@ class Mapa {
 		}
 
 		// Preenche o mapa com formigas mortas em posicoes aleatorias
-		void initMapa(vector<Item> &itens){
-			for(Item &i : itens)
+		void initMapa(vector<Item*> &itens){
+			for(Item *&i : itens){
 				int y = rand() % this -> n;
 				int x = rand() % this -> m;
 				while(this -> mapa[y][x]){
@@ -307,7 +308,7 @@ int main() {
 		vector<double> tmp;
 		tmp.push_back(x);
 		tmp.push_back(y);
-		itens.push_back(Item(cores[tipo], tmp));
+		itens.push_back(new Item(cores[tipo], tmp));
 	}
 	setVisao(VISAO);
 
@@ -374,7 +375,7 @@ int main() {
 				dot.setPosition(D_W_SPACE * i, D_H_SPACE * j);
 				if(_mapa[i][j] != NULL){
 					dot.setFillColor(_mapa[i][j] -> getColor());
-				}
+				} else dot.setFillColor(sf::Color::White);
 				// if(_mapa[i][j] == 0){
 					// dot.setFillColor(sf::Color(232,232,232));
 				// } else {//if(_mapa[i][j] == 1){

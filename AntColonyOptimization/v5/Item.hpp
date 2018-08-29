@@ -3,10 +3,10 @@
 
 class Item {
 private:
-    vector<double> specs;
+    std::vector<double> specs;
     sf::Color color;
 public:
-    Item(sf::Color color, vector<double> &specs){
+    Item(sf::Color color, std::vector<double> &specs){
         this -> color = color;
         this -> specs = specs;
     }
@@ -20,4 +20,4 @@ public:
     sf::Color getColor(){
         return this -> color;
     }
-}
+};
