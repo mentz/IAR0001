@@ -16,6 +16,7 @@ public:
             dist += pow(specs[i] - other -> specs[i], 2);
         }
         dist = sqrt(dist);
+        return dist;
     }
     sf::Color getColor(){
         return this -> color;

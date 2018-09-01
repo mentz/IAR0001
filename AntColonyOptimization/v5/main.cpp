@@ -16,7 +16,7 @@ uniform_real_distribution<> g_dist(0, 1);
 
 // Essa parte pode ser atualizada com argumentos passados pelo terminal
 int NUM_FORMIGAS = 200, TAM_MAPA = 100, NUM_FORMIGAS_MORTAS = 5000;
-int W_WINDOW = 800, H_WINDOW = W_WINDOW;
+int W_WINDOW = 600, H_WINDOW = W_WINDOW;
 int NUM_COR;
 int VISAO = 1;
 
@@ -56,6 +56,7 @@ class Mapa {
 		vector<vector<Item *> > mapa;
 		mutex **mmut;
 		map<pair<int, int>, int> ff;
+		double ALPHA, SIGMA;
 	public:
 		// Construtor
 		Mapa(int n, int m){
@@ -65,6 +66,8 @@ class Mapa {
 			mmut = new mutex*[n];
 			for (int a=0;a<n;a++)
 				mmut[a] = new mutex[m];
+			SIGMA = 2;
+			ALPHA = 10;
 		}
 
 		// Retorna o numero de linhas do mapa
@@ -119,18 +122,22 @@ class Mapa {
 		}
 
 		// Retorna quantas formigas mortas tem na vizinhanca da formiga atual
-		int getVizinhanca(int i, int j, Item *other){
+		double getVizinhanca(int i, int j, Item *me){
 			double cnt = 0;
+			int numViz = 0;
 			for(int y = -VISAO; y <= VISAO; y++){
 				for(int x = -VISAO; x <= VISAO; x++){
 					int yy = y + i; yy %= n; if (yy < 0) yy += n;
 					int xx = x + j; xx %= m; if (xx < 0) xx += m;
 					if(this -> mapa[yy][xx] != NULL){
-						cnt += this -> mapa[yy][xx] -> calcDist(other);
+						numViz++;
+						cnt += (1 - this -> mapa[yy][xx] -> calcDist(me) / this -> ALPHA);
 					}
 				}
 			}
-			return cnt;
+			// cout << cnt << " " << numViz << endl;
+			if(cnt < 0) return 0.0;
+			return cnt / pow(this -> SIGMA, 2);
 		}
 
 		// Seta um mapa dizendo onde tem formiga viva
@@ -249,9 +256,15 @@ void Formiga::runStep()
 		if (mapa -> getPos(y, x) != NULL){
 			// obter vizinhança para cálculo de probabilidade
 			double viz = mapa -> getVizinhanca(y, x, mapa -> getPos(y, x));
-			double prob = viz/(double) ALCANCE;
-			prob *= prob * 0.9995; prob += 0.00025;
-			if (this -> getRandom() > prob) {
+			// cout << "viz: " << viz << endl;
+			double prob;
+			if(viz <= 1){
+				prob = 1.0;
+			} else {
+				prob = 1.0 / pow(viz, 2);
+			}
+			// cout << "Pick: " << prob << endl;
+			if (this -> getRandom() < prob) {
 				setCarry(mapa -> getPos(y, x));
 				mapa -> setPos(y, x, NULL);
 			}
@@ -266,8 +279,14 @@ void Formiga::runStep()
 		if (mapa -> getPos(y, x) == NULL){
 			// obter vizinhança para cálculo de probabilidade
 			double viz = mapa->getVizinhanca(y, x, this -> carry);
-			double prob = viz/(double) ALCANCE;
-			prob *= prob * 0.9995; prob += 0.00025;
+			// cout << "viz: " << viz << endl;
+			double prob;
+			if(viz > 1){
+				prob = 1.0;
+			} else {
+				prob = pow(viz, 4);
+			}
+			// cout << "Release: " << prob << endl;
 			if (this -> getRandom() < prob) {
 				mapa -> setPos(y, x, this -> carry);
 				setCarry(NULL);
