@@ -14,8 +14,6 @@ random_device g_rd;
 mt19937 g_e(g_rd());
 uniform_real_distribution<> g_dist(0, 1);
 
-unsigned long long iter = 0;
-
 // Essa parte pode ser atualizada com argumentos passados pelo terminal
 int NUM_FORMIGAS = 200, TAM_MAPA = 100, NUM_FORMIGAS_MORTAS = 5000;
 int W_WINDOW = 600, H_WINDOW = W_WINDOW;
@@ -40,11 +38,10 @@ sf::Color cores[] = {sf::Color(0xFFFFFFFF),
 					 sf::Color(0x0088FFFF), sf::Color(0xF4A460FF)};
 
 vector<Item *> itens;
-// sf::Color cores[] = {sf::Color(255,255,255,255)
-//
-// }
-bool running;
+bool running, done;
 mutex globmut;
+unsigned long long iter = 0;
+
 // Fim variáveis globais
 
 class Mapa {
@@ -327,55 +324,7 @@ void runFormigas() {
 		globmut.unlock();
 		iter++;
 	}
-}
-
-void draw(sf::RenderWindow *window) {
-	window -> setActive(true);
-	
-	// Definições para desenho
-	float D_W_SPACE = W_WINDOW / (float)TAM_MAPA;
-	float D_H_SPACE = H_WINDOW / (float)TAM_MAPA;
-	float D_RAD = (MIN(D_H_SPACE, D_W_SPACE) * 0.5);
-	sf::RectangleShape dot(sf::Vector2f(D_W_SPACE, D_H_SPACE));
-	sf::CircleShape form(D_RAD);
-	dot.setOrigin(sf::Vector2f(0,0));
-	form.setOrigin(sf::Vector2f(0,0));
-	vector<vector<Item *> > _mapa;
-	
-	while (window->isOpen())
-	{
-		// Limpa fundo
-		window->clear(sf::Color(40,40,40,255));
-
-		// Desenha o grid
-		//drawGrid(window, mapa, formigas);
-		globmut.lock();
-		_mapa = mapa -> getMapa();
-		// Desenhando o mapa com as formigas mortas e os espaços livres
-		for(int j = 0; j < TAM_MAPA; j++){
-			for(int i = 0; i < TAM_MAPA; i++){
-				dot.setPosition(D_W_SPACE * i, D_H_SPACE * j);
-				if(_mapa[i][j] != NULL){
-					dot.setFillColor(_mapa[i][j] -> getColor());
-				} else dot.setFillColor(sf::Color::White);
-				window->draw(dot);
-			}
-		}
-		// Desenhando as formigas vivas (Green -> Carregando algo | Red -> Carregando nada)
-		for(int i = 0; i < NUM_FORMIGAS; i++){
-			pair<int,int> pos = formigas[i] -> getPos();
-			form.setPosition(D_W_SPACE * pos.first, D_H_SPACE * pos.second);
-			if(formigas[i] -> getCarry() != NULL){
-				form.setFillColor(sf::Color::Green);
-			} else {
-				form.setFillColor(sf::Color::Red);
-			}
-			window->draw(form);
-		}
-		globmut.unlock();
-
-		window->display();
-	}
+	done = true;
 }
 
 // Descrição e análise do cenário:
@@ -419,15 +368,21 @@ int main() {
 
 	// Thread de processamento de formigas
 	running = true;
+	done = false;
 	thread runThread (runFormigas);
 	
-	window.setActive(false);
-	
-	sf::Thread drawThread(&draw, &window);
-	drawThread.launch();
+	// Definições para desenho
+	float D_W_SPACE = W_WINDOW / (float)TAM_MAPA;
+	float D_H_SPACE = H_WINDOW / (float)TAM_MAPA;
+	float D_RAD = (MIN(D_H_SPACE, D_W_SPACE) * 0.5);
+	sf::RectangleShape dot(sf::Vector2f(D_W_SPACE, D_H_SPACE));
+	sf::CircleShape form(D_RAD);
+	dot.setOrigin(sf::Vector2f(0,0));
+	form.setOrigin(sf::Vector2f(0,0));
+	vector<vector<Item *> > _mapa;
 
 	// Loop principal
-	while(window.isOpen() && running){
+	while(window.isOpen()){
 		sf::Event event;
 		while (window.pollEvent(event)){
 			// Fecha a janela
@@ -436,16 +391,47 @@ int main() {
 				continue;
 			}
 		}
-		if (iter > 40000) {
+		
+		if (iter > 400000 && running) {
 			running = false;
-			continue;
 		}
+		
+		window.clear(sf::Color(40,40,40,255));
+
+		// Desenha o grid
+		//drawGrid(window, mapa, formigas);
+		globmut.lock();
+		_mapa = mapa -> getMapa();
+		// Desenhando o mapa com as formigas mortas e os espaços livres
+		for(int j = 0; j < TAM_MAPA; j++){
+			for(int i = 0; i < TAM_MAPA; i++){
+				dot.setPosition(D_W_SPACE * i, D_H_SPACE * j);
+				if(_mapa[i][j] != NULL){
+					dot.setFillColor(_mapa[i][j] -> getColor());
+				} else dot.setFillColor(sf::Color::White);
+				window.draw(dot);
+			}
+		}
+		// Desenhando as formigas vivas (Green -> Carregando algo | Red -> Carregando nada)
+		for(int i = 0; i < NUM_FORMIGAS; i++){
+			pair<int,int> pos = formigas[i] -> getPos();
+			form.setPosition(D_W_SPACE * pos.first, D_H_SPACE * pos.second);
+			if(formigas[i] -> getCarry() != NULL){
+				form.setFillColor(sf::Color::Green);
+			} else {
+				form.setFillColor(sf::Color::Red);
+			}
+			window.draw(form);
+		}
+		globmut.unlock();
+
+		window.display();
+		if (done) break;
 	}
 
 	runThread.join();
 
 	printf("Simulação encerrada.\n%llu iterações.\nPressione 'enter' para encerrar.\n", iter);
-	getchar();
 	
 	window.close();
 	
