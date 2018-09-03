@@ -66,8 +66,8 @@ class Mapa {
 			mmut = new mutex*[n];
 			for (int a=0;a<n;a++)
 				mmut[a] = new mutex[m];
-			SIGMA = 2;
-			ALPHA = 10;
+			SIGMA = 4;
+			ALPHA = 2;
 		}
 
 		// Retorna o numero de linhas do mapa
@@ -77,6 +77,13 @@ class Mapa {
 		// Retorna o numero de colunas do mapa
 		int getM(){
 			return this -> m;
+		}
+
+		void setSigma(double sig){
+			this -> SIGMA = sig;
+		}
+		void setAlpha(double alp){
+			this -> ALPHA = alp;
 		}
 
 		// Preenche o mapa com formigas mortas em posicoes aleatorias
@@ -320,6 +327,8 @@ int main() {
 	cin >> NUM_FORMIGAS_MORTAS;
 	cin >> NUM_FORMIGAS;
 	cin >> VISAO;
+	double sig, alp;
+	cin >> sig >> alp;
 	for(int i = 0; i < NUM_FORMIGAS_MORTAS; i++){
 		double x, y;
 		int tipo;
@@ -330,9 +339,10 @@ int main() {
 		itens.push_back(new Item(cores[tipo], tmp));
 	}
 	setVisao(VISAO);
-
 	mapa = new Mapa(TAM_MAPA, TAM_MAPA);
 	mapa -> initMapa(itens);
+	mapa -> setSigma(sig);
+	mapa -> setAlpha(alp);
 
 	// Cria as formigas
 	for(int i = 0; i < NUM_FORMIGAS; i++){
