@@ -331,6 +331,7 @@ void runFormigas() {
 // https://drive.google.com/open?id=18H2shg9uhS-mFW55CrwX-s6RQRUVXITYbvIdNhsiTkM
 int main() {
 	srand(time(NULL));
+	string cobaia;
 
 	cin >> TAM_MAPA;
 	cin >> NUM_FORMIGAS_MORTAS;
@@ -392,7 +393,7 @@ int main() {
 			}
 		}
 		
-		if (iter > 400000 && running) {
+		if (iter > 4000000 && running) {
 			running = false;
 		}
 		
@@ -426,7 +427,10 @@ int main() {
 		globmut.unlock();
 
 		window.display();
-		if (done) break;
+		if (done) {
+			// salvar para arquivo
+			break;
+		}
 	}
 
 	runThread.join();
