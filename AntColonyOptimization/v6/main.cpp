@@ -399,7 +399,7 @@ int main(int argc, char **argv) {
 			window.setFramerateLimit(60);
 		}
 		if (arg1 == "s"){
-			window.setFramerateLimit(60);
+			window.setFramerateLimit(15);
 		}
 	}
 	window.setVerticalSyncEnabled(false);
