@@ -19,6 +19,7 @@ int NUM_FORMIGAS = 200, TAM_MAPA = 100, NUM_FORMIGAS_MORTAS = 5000;
 int W_WINDOW = 600, H_WINDOW = W_WINDOW;
 int NUM_COR;
 int VISAO = 1;
+unsigned long long MAXITER = 10000000;
 
 // Tamanho da vizinhanca que a formiga enxerga
 int ALCANCE = (2 * VISAO + 1) * (2 * VISAO + 1) - 1;
@@ -181,6 +182,7 @@ Mapa *mapa;
 class Formiga{
 private:
 	int x, y;
+	int seMata;
 	Item *carry;
 public:
 
@@ -189,6 +191,7 @@ public:
 		this->x = rand() % mapa -> getN();
 		this->y = rand() % mapa -> getM();
 		this->carry = NULL;
+		this->seMata = 0;
 	}
 
 	// Seta a posicao da formiga
@@ -208,6 +211,9 @@ public:
 	// Retorna se a formiga esta ou nao carregando outra formiga
 	Item * getCarry(){
 		return this -> carry;
+	}
+	void activateDeath() {
+		this->seMata = 1;
 	}
 
 	double getRandom();
@@ -276,22 +282,29 @@ void Formiga::runStep()
 	else if (this->carry){
 		mapa -> lockPos(y, x);
 		if (mapa -> getPos(y, x) == NULL){
-			// obter vizinhança para cálculo de probabilidade
-			double viz = mapa->getVizinhanca(y, x, this -> carry);
-			// cout << "viz: " << viz << endl;
-			double prob;
-			if(viz > 1){
-				prob = 1.0;
-			} else {
-				prob = pow(viz, 4);
-			}
-			// cout << "Release: " << prob << endl;
-			if (this -> getRandom() < prob) {
+			// Ordenar largar no primeiro vazio após o limite
+			if (this->seMata > 1000){
 				mapa -> setPos(y, x, this -> carry);
 				setCarry(NULL);
+			} else {
+				// obter vizinhança para cálculo de probabilidade
+				double viz = mapa->getVizinhanca(y, x, this -> carry);
+				// cout << "viz: " << viz << endl;
+				double prob;
+				if(viz > 1){
+					prob = 1.0;
+				} else {
+					prob = pow(viz, 4);
+				}
+				// cout << "Release: " << prob << endl;
+				if (this -> getRandom() < prob) {
+					mapa -> setPos(y, x, this -> carry);
+					setCarry(NULL);
+				}
 			}
 		}
 		mapa -> unlockPos(y, x);
+		if (this->seMata) this->seMata++;
 	}
 
 	// Sempre se move após sua decisão, qualquer tenha sido.
@@ -308,7 +321,12 @@ void runFormigas() {
 		}
 		globmut.unlock();
 		iter++;
+		if (iter > MAXITER) {
+			running = false;
+		}
 	}
+	for (int i = 0; i < formigas.size(); i++)
+		formigas[i]->activateDeath();
 	while (formigas.size() > 0) {
 		globmut.lock();
 		for (int i = 0; i < formigas.size(); i++) {
@@ -324,12 +342,14 @@ void runFormigas() {
 		globmut.unlock();
 		iter++;
 	}
+		// salvar para arquivo
+	printf("Simulação encerrada.\n%llu iterações.\nFeche a janela para encerrar.\n", iter);
 	done = true;
 }
 
 // Descrição e análise do cenário:
 // https://drive.google.com/open?id=18H2shg9uhS-mFW55CrwX-s6RQRUVXITYbvIdNhsiTkM
-int main() {
+int main(int argc, char **argv) {
 	srand(time(NULL));
 	string cobaia;
 
@@ -337,17 +357,23 @@ int main() {
 	cin >> NUM_FORMIGAS_MORTAS;
 	cin >> NUM_FORMIGAS;
 	cin >> VISAO;
+	cin >> MAXITER;
+	int num_Dados;
+	cin >> num_Dados;
 	double sig, alp;
 	cin >> sig >> alp;
 	for(int i = 0; i < NUM_FORMIGAS_MORTAS; i++){
-		double x, y;
 		int tipo;
-		cin >> x >> y >> tipo;
 		vector<double> tmp;
-		tmp.push_back(x);
-		tmp.push_back(y);
+		for(int j = 0; j < num_Dados; j++){
+			double x;
+			cin >> x;
+			tmp.push_back(x);
+		}
+		cin >> tipo;
 		itens.push_back(new Item(cores[tipo], tmp));
 	}
+	bool justRun = false;
 	setVisao(VISAO);
 	mapa = new Mapa(TAM_MAPA, TAM_MAPA);
 	mapa -> initMapa(itens);
@@ -365,13 +391,24 @@ int main() {
 
 	// Set o framerate para 24 (cinema carai)
 	window.setFramerateLimit(1);
+	if (argc >= 2)
+	{
+		string arg1 = argv[1];
+		if (arg1 == "f"){
+			justRun = true;
+			window.setFramerateLimit(60);
+		}
+		if (arg1 == "s"){
+			window.setFramerateLimit(60);
+		}
+	}
 	window.setVerticalSyncEnabled(false);
 
 	// Thread de processamento de formigas
 	running = true;
 	done = false;
 	thread runThread (runFormigas);
-	
+
 	// Definições para desenho
 	float D_W_SPACE = W_WINDOW / (float)TAM_MAPA;
 	float D_H_SPACE = H_WINDOW / (float)TAM_MAPA;
@@ -389,55 +426,46 @@ int main() {
 			// Fecha a janela
 			if (event.type == sf::Event::Closed){
 				running = false;
+				window.close();
 				continue;
 			}
 		}
-		
-		if (iter > 4000000 && running) {
-			running = false;
-		}
-		
-		window.clear(sf::Color(40,40,40,255));
 
-		// Desenha o grid
-		//drawGrid(window, mapa, formigas);
-		globmut.lock();
-		_mapa = mapa -> getMapa();
-		// Desenhando o mapa com as formigas mortas e os espaços livres
-		for(int j = 0; j < TAM_MAPA; j++){
-			for(int i = 0; i < TAM_MAPA; i++){
-				dot.setPosition(D_W_SPACE * i, D_H_SPACE * j);
-				if(_mapa[i][j] != NULL){
-					dot.setFillColor(_mapa[i][j] -> getColor());
-				} else dot.setFillColor(sf::Color::White);
-				window.draw(dot);
+		if (!(justRun && running)) { // 00 1 01 1 10 1 11 0
+			window.clear(sf::Color(40,40,40,255));
+
+			// Desenha o grid
+			//drawGrid(window, mapa, formigas);
+			globmut.lock();
+			_mapa = mapa -> getMapa();
+			// Desenhando o mapa com as formigas mortas e os espaços livres
+			for(int j = 0; j < TAM_MAPA; j++){
+				for(int i = 0; i < TAM_MAPA; i++){
+					dot.setPosition(D_W_SPACE * i, D_H_SPACE * j);
+					if(_mapa[i][j] != NULL){
+						dot.setFillColor(_mapa[i][j] -> getColor());
+					} else dot.setFillColor(sf::Color::White);
+					window.draw(dot);
+				}
 			}
-		}
-		// Desenhando as formigas vivas (Green -> Carregando algo | Red -> Carregando nada)
-		for(int i = 0; i < NUM_FORMIGAS; i++){
-			pair<int,int> pos = formigas[i] -> getPos();
-			form.setPosition(D_W_SPACE * pos.first, D_H_SPACE * pos.second);
-			if(formigas[i] -> getCarry() != NULL){
-				form.setFillColor(sf::Color::Green);
-			} else {
-				form.setFillColor(sf::Color::Red);
+			// Desenhando as formigas vivas (Green -> Carregando algo | Red -> Carregando nada)
+			for(int i = 0; i < NUM_FORMIGAS; i++){
+				pair<int,int> pos = formigas[i] -> getPos();
+				form.setPosition(D_W_SPACE * pos.first, D_H_SPACE * pos.second);
+				if(formigas[i] -> getCarry() != NULL){
+					form.setFillColor(sf::Color::Green);
+				} else {
+					form.setFillColor(sf::Color::Red);
+				}
+				window.draw(form);
 			}
-			window.draw(form);
+			globmut.unlock();
 		}
-		globmut.unlock();
 
 		window.display();
-		if (done) {
-			// salvar para arquivo
-			break;
-		}
 	}
 
 	runThread.join();
 
-	printf("Simulação encerrada.\n%llu iterações.\nPressione 'enter' para encerrar.\n", iter);
-	
-	window.close();
-	
 	return 0;
 }
