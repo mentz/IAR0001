@@ -328,14 +328,18 @@ int main() {
 	cin >> NUM_FORMIGAS;
 	cin >> VISAO;
 	double sig, alp;
+	int numItems;
+	cin >> numItems;
 	cin >> sig >> alp;
 	for(int i = 0; i < NUM_FORMIGAS_MORTAS; i++){
-		double x, y;
-		int tipo;
-		cin >> x >> y >> tipo;
+		double x;
 		vector<double> tmp;
-		tmp.push_back(x);
-		tmp.push_back(y);
+		for(int j = 0; j < numItems; j++){
+			cin >> x;
+			tmp.push_back(x);
+		}
+		int tipo;
+		cin >> tipo;
 		itens.push_back(new Item(cores[tipo], tmp));
 	}
 	setVisao(VISAO);

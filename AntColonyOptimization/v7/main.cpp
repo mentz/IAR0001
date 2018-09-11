@@ -252,12 +252,20 @@ void Formiga::move()
 	}
 	this->validatePos();
 }
+//
+// inline double sigmoid(double x){
+// 	double cima = 1 - exp(-1.2 * x);
+// 	cout << cima << endl;
+// 	double baixo = 1 + exp(-1.2 * x);
+// 	cout << baixo << endl;
+// 	return (cima / baixo);
+// }
 
 void Formiga::runStep()
 {
 	// Lógica para pegar
 	// Se (não carrego) E (estou sobre formiga morta)
-	if (!this->carry){
+	if (this->carry == NULL){
 		mapa -> lockPos(y, x);
 		if (mapa -> getPos(y, x) != NULL){
 			// obter vizinhança para cálculo de probabilidade
@@ -269,6 +277,7 @@ void Formiga::runStep()
 			} else {
 				prob = 1.0 / pow(viz, 2);
 			}
+			// double prob = 1 - sigmoid(viz);
 			// cout << "Pick: " << prob << endl;
 			if (this -> getRandom() < prob) {
 				setCarry(mapa -> getPos(y, x));
@@ -280,7 +289,7 @@ void Formiga::runStep()
 
 	// Lógica para largar
 	// Se (carrego) E (não estou sobre formiga morta)
-	else if (this->carry){
+	else {
 		mapa -> lockPos(y, x);
 		if (mapa -> getPos(y, x) == NULL){
 			// Ordenar largar no primeiro vazio após o limite
@@ -297,15 +306,17 @@ void Formiga::runStep()
 				} else {
 					prob = pow(viz, 4);
 				}
+				// double prob = sigmoid(viz);
 				// cout << "Release: " << prob << endl;
 				if (this -> getRandom() < prob) {
 					mapa -> setPos(y, x, this -> carry);
 					setCarry(NULL);
+				} else {
+					if (this->seMata) this->seMata++;
 				}
 			}
 		}
 		mapa -> unlockPos(y, x);
-		if (this->seMata) this->seMata++;
 	}
 
 	// Sempre se move após sua decisão, qualquer tenha sido.
