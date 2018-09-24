@@ -7,4 +7,5 @@ Yeah somos:
 
 Nosso assunto (5) é:
 *Controle de parâmetros em meta-heurísticas*
+
 Data: 28/11/2018
