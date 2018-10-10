@@ -37,7 +37,6 @@ struct Solucao {
     Solucao(){
         num_Sat = 0;
     }
-
 };
 
 random_device rd;
@@ -123,15 +122,14 @@ int main(int argc, char const *argv[]) {
 	string s, fpath;
     int num_X, num_Clausulas, resfriamento;
 	ifstream entrada;
-	if (argc > 4){
-		fpath = argv[1];
-		sscanf(argv[2], "%d", &resfriamento);
-		sscanf(argv[3], "%lf", &TEMP_INICIAL);
-		sscanf(argv[4], "%lf", &TEMP_FINAL);
-	} else {
+	if (argc <= 4){
 		printf("4 argumentos: entrada CS# temp_inicial temp_final\n");
 		return 1;
 	}
+	
+	sscanf(argv[2], "%d", &resfriamento);
+	sscanf(argv[3], "%lf", &TEMP_INICIAL);
+	sscanf(argv[4], "%lf", &TEMP_FINAL);
 
 	// Teste das fórmulas de temperatura:
 	// for (int i = 0; i < NUM_ITERACOES; i++){
@@ -152,10 +150,11 @@ int main(int argc, char const *argv[]) {
 	// 	printf("%d %6.4lf\n", i, temp);
 	// }
 
+
 // /*
 	//
 	// INICIO leitura da entrada
-	entrada.open(fpath);
+	entrada.open(argv[1]);
 	if (!entrada.is_open()){
 		printf("Erro ao abrir arquivo \"%s\"\n", argv[1]);
 	}
@@ -209,7 +208,6 @@ int main(int argc, char const *argv[]) {
 		// temp = CS6(i);
 		vector<bool> n_conf = nova_Conf(solucaoFinal.conf);
         int ret = eval(SAT, n_conf);
-		melhormelhor = max(ret, melhormelhor);
 		if(ret > solucaoFinal.num_Sat){
 			solucaoFinal.conf = n_conf;
 			solucaoFinal.num_Sat = ret;
@@ -222,12 +220,15 @@ int main(int argc, char const *argv[]) {
 				solucaoFinal.num_Sat = ret;
 			}
 		}
-		for (int i = 0; i < n_conf.size(); i++){
-			printf("%s", n_conf[i] ? "_":"1");
-		} printf("\n");
+		// printf("%06d %03d ", i, ret);
+		// for (int i = 0; i < n_conf.size(); i++){
+		// 	printf("%s", n_conf[i] ? "_":"1");
+		// } printf("\n");
+		if(ret == num_Clausulas) {melhormelhor = i; break;}
     }
 
-	cout << solucaoFinal.num_Sat << " " << melhormelhor << endl;
+	// printf("####################################################\n");
+	printf("%06d %03d ", melhormelhor, solucaoFinal.num_Sat);
 	for (int i = 0; i < solucaoFinal.conf.size(); i++){
 		printf("%s", solucaoFinal.conf[i] ? "_":"1");
 	} printf("\n");
