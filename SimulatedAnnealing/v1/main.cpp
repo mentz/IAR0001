@@ -6,7 +6,7 @@ typedef vector<int> vi;
 typedef vector<vi> vvi;
 
 double TEMP_INICIAL = 1;
-double TEMP_FINAL = 0.0001;
+double TEMP_FINAL = 0.00001;
 double NUM_ITERACOES = 250000;
 
 struct Clausula {
@@ -105,7 +105,7 @@ vector<bool> nova_Conf(vector<bool> &conf, int iteracao, double temp){
 	for(int i = 0; i < conf.size(); i++){
 		double randi = dist(engine);
 		// if(randi < 0.05){
-		if(randi < temp * 0.015){
+		if(randi < temp * 0.05){
 			//double aux = dist(engine);
 			//ret.push_back((bool)(aux >= 0.5));
 			ret.push_back(!conf[i]);
@@ -117,28 +117,43 @@ vector<bool> nova_Conf(vector<bool> &conf, int iteracao, double temp){
 }
 
 int main(int argc, char const *argv[]) {
-	string s;
-	cin >> s >> s;
-    int num_X, num_Clausulas;
-    cin >> num_X >> num_Clausulas;
+	string s, fpath;
+    int num_X, num_Clausulas, resfriamento;
+	ifstream entrada;
+	if (argc > 2){
+		fpath = argv[1];
+		sscanf(argv[2], "%d", &resfriamento);
+	}
 
-	vector<Clausula> SAT;
 	//
-	// for(int i = 1; i <= 10; i++){
-	// 	cout << CS0(i) << endl;
-	// }
-	// return 0;
+	// INICIO leitura da entrada
+	entrada.open(fpath);
+	if (!entrada.is_open()){
+		printf("Erro ao abrir arquivo \"%s\"\n", argv[1]);
+	}
+
+	// cin >> s >> s;
+	entrada >> s >> s;
+	// cin >> num_X >> num_Clausulas;
+	entrada >> num_X >> num_Clausulas;
+	vector<Clausula> SAT;
     for(int i = 0; i < num_Clausulas; i++){
         vector<int> vet;
         for(int j = 0; j < 3; j++){
             int x;
-            cin >> x;
+			// cin >> x;
+            entrada >> x;
             vet.push_back(x);
         }
 		int t;
-        cin >> t; // ler o trailing zero
-        SAT.push_back(Clausula(vet));
+		// cin >> t; // ler o trailing zero
+        entrada >> t; // ler o trailing zero
+		SAT.push_back(Clausula(vet));
     }
+	entrada.close();
+	// FIM leitura da entrada
+	//
+
     vector<bool> conf = init(num_X);
 	int ret = eval(SAT, conf);
 
@@ -150,7 +165,20 @@ int main(int argc, char const *argv[]) {
 	int melhormelhor = 0;
 
     for(int i = 1; i <= NUM_ITERACOES; i++){
-		temp = CS6(i);
+		switch (resfriamento){
+			case 0: temp = CS0(i); break;
+			case 1: temp = CS1(i); break;
+			case 2: temp = CS2(i); break;
+			case 3: temp = CS3(i); break;
+			case 4: temp = CS4(i); break;
+			case 5: temp = CS5(i); break;
+			case 6: temp = CS6(i); break;
+			case 7: temp = CS7(i); break;
+			case 8: temp = CS8(i); break;
+			case 9: temp = CS9(i); break;
+			default: temp = CS0(i); break;
+		}
+		// temp = CS6(i);
 		vector<bool> n_conf = nova_Conf(solucaoFinal.conf, i, temp);
 		// for (auto e : n_conf)
 		// {
@@ -169,9 +197,15 @@ int main(int argc, char const *argv[]) {
 				solucaoFinal.num_Sat = ret;
 			}
 		}
+		for (int i = 0; i < n_conf.size(); i++){
+			printf("%s", n_conf[i] ? "_":"1");
+		} printf("\n");
     }
 
 	cout << solucaoFinal.num_Sat << endl;
+	for (int i = 0; i < solucaoFinal.conf.size(); i++){
+		printf("%s", solucaoFinal.conf[i] ? "_":"1");
+	} printf("\n");
 
     return 0;
 }
