@@ -132,18 +132,21 @@ class Mapa {
 		double getVizinhanca(int i, int j, Item *me){
 			double cnt = 0;
 			int numViz = 0;
+			int flag = 1;
 			for(int y = -VISAO; y <= VISAO; y++){
 				for(int x = -VISAO; x <= VISAO; x++){
 					int yy = y + i; yy %= n; if (yy < 0) yy += n;
 					int xx = x + j; xx %= m; if (xx < 0) xx += m;
 					if(this -> mapa[yy][xx] != NULL){
 						numViz++;
-						cnt += (1 - this -> mapa[yy][xx] -> calcDist(me) / this -> ALPHA);
+						double aux = (1 - this -> mapa[yy][xx] -> calcDist(me) / this -> ALPHA);
+						if(aux < 0) flag = 0;
+						cnt += aux;
 					}
 				}
 			}
 			// cout << cnt << " " << numViz << endl;
-			if(cnt < 0) return 0.0;
+			if(cnt < 0 or !flag) return 0.0;
 			return cnt / pow(this -> SIGMA, 2);
 		}
 
@@ -423,19 +426,19 @@ int main() {
 			}
 		}
 		// Desenhando as formigas vivas (Green -> Carregando algo | Red -> Carregando nada)
-		for(int i = 0; i < NUM_FORMIGAS; i++){
-			pair<int,int> pos = formigas[i] -> getPos();
-			form.setPosition(D_W_SPACE * pos.first, D_H_SPACE * pos.second);
-			if(formigas[i] -> getCarry() != NULL){
-				form.setFillColor(sf::Color::Green);
-			} else {
-				form.setFillColor(sf::Color::Red);
-			}
-			window.draw(form);
-		}
+		// for(int i = 0; i < NUM_FORMIGAS; i++){
+		// 	pair<int,int> pos = formigas[i] -> getPos();
+		// 	form.setPosition(D_W_SPACE * pos.first, D_H_SPACE * pos.second);
+		// 	if(formigas[i] -> getCarry() != NULL){
+		// 		form.setFillColor(sf::Color::Green);
+		// 	} else {
+		// 		form.setFillColor(sf::Color::Red);
+		// 	}
+		// 	window.draw(form);
+		// }
 		globmut.unlock();
-
 		window.display();
+		while(1){}
 	}
 
 	runThread.join();

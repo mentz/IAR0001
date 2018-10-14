@@ -140,34 +140,39 @@ int main(int argc, char const *argv[]) {
         SAT.push_back(Clausula(vet));
     }
     vector<bool> conf = init(num_X);
-	int ret = eval(SAT, conf);
+	int num_Sat = eval(SAT, conf);
 
 	double temp = TEMP_INICIAL;
 
     Solucao solucaoFinal;
-	solucaoFinal.num_Sat = ret;
+	solucaoFinal.num_Sat = num_Sat;
 	solucaoFinal.conf = conf;
-	int melhormelhor = 0;
+	
+	cout << "1 " << num_Sat << endl;
 
     for(int i = 1; i <= NUM_ITERACOES; i++){
 		temp = CS6(i);
-		vector<bool> n_conf = nova_Conf(solucaoFinal.conf, i, temp);
-		// for (auto e : n_conf)
-		// {
-		// 	printf("%d ", (int)e);
-		// } printf("\n");
+		vector<bool> n_conf = nova_Conf(conf, i, temp);
+		
         int ret = eval(SAT, n_conf);
-		if(ret > solucaoFinal.num_Sat){
-			solucaoFinal.conf = n_conf;
-			solucaoFinal.num_Sat = ret;
+
+		cout << i << " " << num_Sat << endl;	
+
+		if(ret > num_Sat){
+			conf = n_conf;
+			num_Sat = ret;
 		} else {
 			// double prob = CS0(i);
-			double prob = temp;
 			double randi = dist(engine);
-			if(randi < prob){
-				solucaoFinal.conf = n_conf;
-				solucaoFinal.num_Sat = ret;
+			if(randi < temp){
+				conf = n_conf;
+				num_Sat = ret;
 			}
+		}
+
+		if(num_Sat > solucaoFinal.num_Sat){
+			solucaoFinal.num_Sat = num_Sat;
+			solucaoFinal.conf = conf;
 		}
     }
 

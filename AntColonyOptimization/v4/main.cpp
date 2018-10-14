@@ -15,7 +15,7 @@ uniform_real_distribution<> g_dist(0, 1);
 
 // Essa parte pode ser atualizada com argumentos passados pelo terminal
 int NUM_FORMIGAS = 200, TAM_MAPA = 100, NUM_FORMIGAS_MORTAS = 5000;
-int W_WINDOW = 800, H_WINDOW = W_WINDOW;
+int W_WINDOW = 600, H_WINDOW = W_WINDOW;
 int NUM_COR;
 int VISAO = 1;
 
@@ -253,7 +253,7 @@ void Formiga::runStep()
 			// obter vizinhança para cálculo de probabilidade
 			int viz = mapa -> getVizinhanca(y, x, mapa -> getPos(y, x));
 			double prob = viz/(double) ALCANCE;
-			prob *= prob * 0.9995; prob += 0.00025;
+			prob *= prob;
 			if (this -> getRandom() > prob) {
 				setCarry(mapa -> getPos(y, x));
 				mapa -> setPos(y, x, 0);
@@ -270,7 +270,7 @@ void Formiga::runStep()
 			// obter vizinhança para cálculo de probabilidade
 			int viz = mapa->getVizinhanca(y, x, this -> carry);
 			double prob = viz/(double) ALCANCE;
-			prob *= prob * 0.9995; prob += 0.00025;
+			prob *= prob;
 			if (this -> getRandom() < prob) {
 				mapa -> setPos(y, x, this -> carry);
 				setCarry(0);
@@ -384,19 +384,20 @@ int main() {
 			}
 		}
 		// Desenhando as formigas vivas (Green -> Carregando algo | Red -> Carregando nada)
-		for(int i = 0; i < NUM_FORMIGAS; i++){
-			pair<int,int> pos = formigas[i] -> getPos();
-			form.setPosition(D_W_SPACE * pos.first, D_H_SPACE * pos.second);
-			if(formigas[i] -> getCarry()){
-				form.setFillColor(sf::Color::Green);
-			} else {
-				form.setFillColor(sf::Color::Red);
-			}
-			window.draw(form);
-		}
+		// for(int i = 0; i < NUM_FORMIGAS; i++){
+		// 	pair<int,int> pos = formigas[i] -> getPos();
+		// 	form.setPosition(D_W_SPACE * pos.first, D_H_SPACE * pos.second);
+		// 	if(formigas[i] -> getCarry()){
+		// 		form.setFillColor(sf::Color::Green);
+		// 	} else {
+		// 		form.setFillColor(sf::Color::Red);
+		// 	}
+		// 	window.draw(form);
+		// }
 		globmut.unlock();
 
 		window.display();
+		while(1){}
 	}
 
 	runThread.join();
