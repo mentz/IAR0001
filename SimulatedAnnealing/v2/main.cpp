@@ -7,7 +7,7 @@ typedef vector<vi> vvi;
 
 double TEMP_INICIAL = 1;
 double TEMP_FINAL = 0.0001;
-double NUM_ITERACOES = 250000;
+double NUM_ITERACOES = 1000000;
 
 struct Clausula {
     vector<int> variaveis;
@@ -182,15 +182,15 @@ int main(int argc, char const *argv[]) {
 	//
 
     vector<bool> conf = init(num_X);
-	int ret = eval(SAT, conf);
+	int retT = eval(SAT, conf);
 
 	double temp = TEMP_INICIAL;
 
     Solucao solucaoFinal;
-	solucaoFinal.num_Sat = ret;
+	solucaoFinal.num_Sat = retT;
 	solucaoFinal.conf = conf;
 	int melhormelhor = 0;
-
+	int oi = 1;
     for(int i = 1; i <= NUM_ITERACOES; i++){
 		switch (resfriamento){
 			case 0: temp = CS0(i); break;
@@ -206,32 +206,35 @@ int main(int argc, char const *argv[]) {
 			default: temp = CS0(i); break;
 		}
 		// temp = CS6(i);
-		vector<bool> n_conf = nova_Conf(solucaoFinal.conf);
+		vector<bool> n_conf = nova_Conf(conf);
         int ret = eval(SAT, n_conf);
-		if(ret > solucaoFinal.num_Sat){
-			solucaoFinal.conf = n_conf;
-			solucaoFinal.num_Sat = ret;
+		if(ret > retT){
+			conf = n_conf;
+			retT = ret;
 		} else {
 			double delta = ret - solucaoFinal.num_Sat;
-			double prob = exp(delta / temp);
+			double prob = temp;
+			//cerr << prob << endl;
 			double randi = dist(engine);
 			if(randi < prob){
-				solucaoFinal.conf = n_conf;
-				solucaoFinal.num_Sat = ret;
+				cerr << oi++ << endl;
+				conf = n_conf;
+				retT = ret;
 			}
 		}
-		// printf("%06d %03d ", i, ret);
-		// for (int i = 0; i < n_conf.size(); i++){
-		// 	printf("%s", n_conf[i] ? "_":"1");
-		// } printf("\n");
-		if(ret == num_Clausulas) {melhormelhor = i; break;}
+		if(retT > solucaoFinal.num_Sat){
+			solucaoFinal.conf = conf;
+			solucaoFinal.num_Sat = retT;
+		}
+		printf("%d %d\n", i, retT);
+		//if(ret == num_Clausulas) {melhormelhor = i; break;}
     }
 
-	// printf("####################################################\n");
-	printf("%06d %03d ", melhormelhor, solucaoFinal.num_Sat);
+	cerr << "####################################################\n" << endl;
+	cerr << melhormelhor << " " << solucaoFinal.num_Sat << endl;
 	for (int i = 0; i < solucaoFinal.conf.size(); i++){
-		printf("%s", solucaoFinal.conf[i] ? "_":"1");
-	} printf("\n");
+		cerr << solucaoFinal.conf[i] ? "_":"1";
+	} cerr << endl;
 // */
 
     return 0;
