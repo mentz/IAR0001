@@ -37,7 +37,6 @@ struct Solucao {
     Solucao(){
         num_Sat = 0;
     }
-
 };
 
 random_device rd;
@@ -50,18 +49,25 @@ double CS0 (int iteracao){
 double CS1 (int iteracao){
     return (TEMP_INICIAL * pow(TEMP_FINAL / TEMP_INICIAL, iteracao / NUM_ITERACOES));
 }
+
+// COM PROBLEMA:
 double CS2 (int iteracao){
     double A = (TEMP_INICIAL - TEMP_FINAL) * (NUM_ITERACOES + 1) / NUM_ITERACOES;
     double B = TEMP_INICIAL - A;
-    return  (A / (iteracao + 1) + B);
+    return  ((A / (iteracao + 1)) + B);
 }
+
+// COM PROBLEMA:
 double CS3 (int iteracao){
     double A = log(TEMP_INICIAL - TEMP_FINAL)/log(NUM_ITERACOES);
     return (TEMP_INICIAL - pow(iteracao, A));
 }
+
+// COM PROBLEMA:
 double CS4 (int iteracao){
-    return ((TEMP_INICIAL - TEMP_INICIAL) / (1 + exp(3 * (iteracao - NUM_ITERACOES / 2.0))) + TEMP_FINAL);
+    return ((TEMP_INICIAL - TEMP_FINAL) / (1 + exp(3 * (iteracao - NUM_ITERACOES / 2.0))) + TEMP_FINAL);
 }
+
 double CS5 (int iteracao){
     return (0.5 * (TEMP_INICIAL - TEMP_FINAL) * (1 + cos(iteracao * acos(-1) / NUM_ITERACOES)) + TEMP_FINAL);
 }
@@ -99,15 +105,11 @@ int eval(vector<Clausula> &SAT, vector<bool> &conf){
 	return res;
 }
 
-vector<bool> nova_Conf(vector<bool> &conf, int iteracao, double temp){
-	//double temp = CS0(iteracao);
+vector<bool> nova_Conf(vector<bool> &conf){
 	vector<bool> ret;
 	for(int i = 0; i < conf.size(); i++){
 		double randi = dist(engine);
-		// if(randi < 0.05){
-		if(randi < temp * 0.015){
-			//double aux = dist(engine);
-			//ret.push_back((bool)(aux >= 0.5));
+		if(randi < 0.05){
 			ret.push_back(!conf[i]);
 		} else {
 			ret.push_back(conf[i]);
@@ -117,66 +119,120 @@ vector<bool> nova_Conf(vector<bool> &conf, int iteracao, double temp){
 }
 
 int main(int argc, char const *argv[]) {
-	string s;
-	cin >> s >> s;
-    int num_X, num_Clausulas;
-    cin >> num_X >> num_Clausulas;
+	string s, fpath;
+    int num_X, num_Clausulas, resfriamento;
+	ifstream entrada;
+	if (argc <= 4){
+		printf("4 argumentos: entrada CS# temp_inicial temp_final\n");
+		return 1;
+	}
+	
+	sscanf(argv[2], "%d", &resfriamento);
+	sscanf(argv[3], "%lf", &TEMP_INICIAL);
+	sscanf(argv[4], "%lf", &TEMP_FINAL);
 
-	vector<Clausula> SAT;
-	//
-	// for(int i = 1; i <= 10; i++){
-	// 	cout << CS0(i) << endl;
+	// Teste das fórmulas de temperatura:
+	// for (int i = 0; i < NUM_ITERACOES; i++){
+	// 	double temp;
+	// 	switch (resfriamento){
+	// 		case 0: temp = CS0(i); break;
+	// 		case 1: temp = CS1(i); break;
+	// 		case 2: temp = CS2(i); break;
+	// 		case 3: temp = CS3(i); break;
+	// 		case 4: temp = CS4(i); break;
+	// 		case 5: temp = CS5(i); break;
+	// 		case 6: temp = CS6(i); break;
+	// 		case 7: temp = CS7(i); break;
+	// 		case 8: temp = CS8(i); break;
+	// 		case 9: temp = CS9(i); break;
+	// 		default: temp = CS0(i); break;
+	// 	}
+	// 	printf("%d %6.4lf\n", i, temp);
 	// }
-	// return 0;
+
+
+// /*
+	//
+	// INICIO leitura da entrada
+	entrada.open(argv[1]);
+	if (!entrada.is_open()){
+		printf("Erro ao abrir arquivo \"%s\"\n", argv[1]);
+	}
+
+	// cin >> s >> s;
+	entrada >> s >> s;
+	// cin >> num_X >> num_Clausulas;
+	entrada >> num_X >> num_Clausulas;
+	vector<Clausula> SAT;
     for(int i = 0; i < num_Clausulas; i++){
         vector<int> vet;
         for(int j = 0; j < 3; j++){
             int x;
-            cin >> x;
+			// cin >> x;
+            entrada >> x;
             vet.push_back(x);
         }
 		int t;
-        cin >> t; // ler o trailing zero
-        SAT.push_back(Clausula(vet));
+		// cin >> t; // ler o trailing zero
+        entrada >> t; // ler o trailing zero
+		SAT.push_back(Clausula(vet));
     }
+	entrada.close();
+	// FIM leitura da entrada
+	//
+
     vector<bool> conf = init(num_X);
-	int num_Sat = eval(SAT, conf);
+	int ret = eval(SAT, conf);
 
 	double temp = TEMP_INICIAL;
 
     Solucao solucaoFinal;
-	solucaoFinal.num_Sat = num_Sat;
+	solucaoFinal.num_Sat = ret;
 	solucaoFinal.conf = conf;
-	
-	cout << "1 " << num_Sat << endl;
+	int melhormelhor = 0;
 
     for(int i = 1; i <= NUM_ITERACOES; i++){
-		temp = CS6(i);
-		vector<bool> n_conf = nova_Conf(conf, i, temp);
-		
+		switch (resfriamento){
+			case 0: temp = CS0(i); break;
+			case 1: temp = CS1(i); break;
+			case 2: temp = CS2(i); break;
+			case 3: temp = CS3(i); break;
+			case 4: temp = CS4(i); break;
+			case 5: temp = CS5(i); break;
+			case 6: temp = CS6(i); break;
+			case 7: temp = CS7(i); break;
+			case 8: temp = CS8(i); break;
+			case 9: temp = CS9(i); break;
+			default: temp = CS0(i); break;
+		}
+		// temp = CS6(i);
+		vector<bool> n_conf = nova_Conf(solucaoFinal.conf);
         int ret = eval(SAT, n_conf);
-
-		cout << i << " " << num_Sat << endl;	
-
-		if(ret > num_Sat){
-			conf = n_conf;
-			num_Sat = ret;
+		if(ret > solucaoFinal.num_Sat){
+			solucaoFinal.conf = n_conf;
+			solucaoFinal.num_Sat = ret;
 		} else {
-			// double prob = CS0(i);
+			double delta = ret - solucaoFinal.num_Sat;
+			double prob = exp(delta / temp);
 			double randi = dist(engine);
-			if(randi < temp){
-				conf = n_conf;
-				num_Sat = ret;
+			if(randi < prob){
+				solucaoFinal.conf = n_conf;
+				solucaoFinal.num_Sat = ret;
 			}
 		}
-
-		if(num_Sat > solucaoFinal.num_Sat){
-			solucaoFinal.num_Sat = num_Sat;
-			solucaoFinal.conf = conf;
-		}
+		// printf("%06d %03d ", i, ret);
+		// for (int i = 0; i < n_conf.size(); i++){
+		// 	printf("%s", n_conf[i] ? "_":"1");
+		// } printf("\n");
+		if(ret == num_Clausulas) {melhormelhor = i; break;}
     }
 
-	cout << solucaoFinal.num_Sat << endl;
+	// printf("####################################################\n");
+	printf("%06d %03d ", melhormelhor, solucaoFinal.num_Sat);
+	for (int i = 0; i < solucaoFinal.conf.size(); i++){
+		printf("%s", solucaoFinal.conf[i] ? "_":"1");
+	} printf("\n");
+// */
 
     return 0;
 }
