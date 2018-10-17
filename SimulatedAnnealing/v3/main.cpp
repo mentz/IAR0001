@@ -109,7 +109,7 @@ vector<bool> nova_Conf(vector<bool> &conf){
 	vector<bool> ret;
 	for(int i = 0; i < conf.size(); i++){
 		double randi = dist(engine);
-		if(randi < 0.05){
+		if(randi < 0.01){
 			ret.push_back(!conf[i]);
 		} else {
 			ret.push_back(conf[i]);
@@ -226,7 +226,7 @@ int main(int argc, char const *argv[]) {
 			solucaoFinal.conf = conf;
 			solucaoFinal.num_Sat = retT;
 		}
-		// printf("%d %d\n", i, retT);
+		printf("%d %d\n", i, retT);
 		//if(ret == num_Clausulas) {melhormelhor = i; break;}
     }
 
