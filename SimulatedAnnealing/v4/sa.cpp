@@ -5,8 +5,8 @@ using namespace std;
 typedef vector<int> vi;
 typedef vector<vi> vvi;
 
-double TEMP_INICIAL = 100;
-double TEMP_FINAL = 5;
+double TEMP_INICIAL = 1;
+double TEMP_FINAL = 0.0001;
 double NUM_ITERACOES = 250000;
 
 struct Clausula {
@@ -122,6 +122,7 @@ int main(int argc, char const *argv[]) {
 	string s, fpath;
     int num_X, num_Clausulas, resfriamento;
 	ifstream entrada;
+	ofstream saida;
 	if (argc <= 5){
 		printf("5 argumentos: <entrada> <CS#> <temp_inicial> <temp_final> <SAIDA>\n");
 		return 1;
@@ -160,7 +161,7 @@ int main(int argc, char const *argv[]) {
 		printf("Erro ao abrir arquivo \"%s\" para entrada\n", argv[1]);
 	}
 
-	saida.open(argv[2]);
+	saida.open(argv[5]);
 	if (!saida.is_open()){
 		printf("Erro ao abrir arquivo \"%s\" para saída\n", argv[2]);
 	}
@@ -241,7 +242,7 @@ int main(int argc, char const *argv[]) {
 	// for (int i = 0; i < solucaoFinal.conf.size(); i++){
 	// 	cerr << (solucaoFinal.conf[i] ? "_":"1");
 	// } cerr << endl;
-	cout << "Satisfeito " << solucaoFinal.num_Sat << " de " << num_X << " cláusulas.\n";
+	cout << "Satisfeito " << solucaoFinal.num_Sat << " de " << num_Clausulas << " cláusulas.\n";
 
     return 0;
 }

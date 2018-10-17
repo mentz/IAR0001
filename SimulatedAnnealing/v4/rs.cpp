@@ -5,9 +5,7 @@ using namespace std;
 typedef vector<int> vi;
 typedef vector<vi> vvi;
 
-double TEMP_INICIAL = 1;
-double TEMP_FINAL = 0;
-double NUM_ITERACOES = 250000;
+int NUM_ITERACOES = 250000;
 
 struct Clausula {
     vector<int> variaveis;
@@ -43,49 +41,6 @@ random_device rd;
 mt19937 engine{rd()};
 uniform_real_distribution<double> dist{0.0, 1.0};
 
-double CS0 (int iteracao){
-    return TEMP_INICIAL - iteracao * (TEMP_INICIAL - TEMP_FINAL)/(double)NUM_ITERACOES;
-}
-double CS1 (int iteracao){
-    return (TEMP_INICIAL * pow(TEMP_FINAL / TEMP_INICIAL, iteracao / NUM_ITERACOES));
-}
-
-// COM PROBLEMA:
-double CS2 (int iteracao){
-    double A = (TEMP_INICIAL - TEMP_FINAL) * (NUM_ITERACOES + 1) / NUM_ITERACOES;
-    double B = TEMP_INICIAL - A;
-    return  ((A / (double)(iteracao + 1)) + B);
-}
-
-// COM PROBLEMA:
-double CS3 (int iteracao){
-    double A = log(TEMP_INICIAL - TEMP_FINAL)/log(NUM_ITERACOES);
-    return (TEMP_INICIAL - pow(iteracao, A));
-}
-
-// COM PROBLEMA:
-double CS4 (int iteracao){
-    return ((TEMP_INICIAL - TEMP_FINAL) / (1.0 + exp(3 * (iteracao - NUM_ITERACOES / 2.0))) + TEMP_FINAL);
-}
-
-double CS5 (int iteracao){
-    return (0.5 * (TEMP_INICIAL - TEMP_FINAL) * (1 + cos((iteracao * acos(-1)) / NUM_ITERACOES)) + TEMP_FINAL);
-}
-double CS6 (int iteracao){
-    return (0.5 * (TEMP_INICIAL - TEMP_FINAL) * (1 - tanh((10.0 * iteracao) / NUM_ITERACOES - 5.0)) + TEMP_FINAL);
-}
-double CS7 (int iteracao){
-    return ((TEMP_INICIAL - TEMP_FINAL) / (cosh((10.0 * iteracao) / NUM_ITERACOES)) + TEMP_FINAL);
-}
-double CS8 (int iteracao){
-    double A = (1 / NUM_ITERACOES) * (log(TEMP_INICIAL / TEMP_FINAL));
-    return (TEMP_INICIAL * exp(-A * iteracao));
-}
-double CS9 (int iteracao){
-    double A = (1 / pow(NUM_ITERACOES, 2)) * (log(TEMP_INICIAL / TEMP_FINAL));
-    return (TEMP_INICIAL * exp(-A * pow(iteracao, 2)));
-}
-
 vector<bool> init(int num_X){
     vector<bool> vet;
     for(int i = 0; i < num_X; i++){
@@ -105,22 +60,9 @@ int eval(vector<Clausula> &SAT, vector<bool> &conf){
 	return res;
 }
 
-vector<bool> nova_Conf(vector<bool> &conf){
-	vector<bool> ret;
-	for(int i = 0; i < conf.size(); i++){
-		double randi = dist(engine);
-		if(randi < 0.01){
-			ret.push_back(!conf[i]);
-		} else {
-			ret.push_back(conf[i]);
-		}
-	}
-	return ret;
-}
-
 int main(int argc, char const *argv[]) {
 	string s, fpath;
-    int num_X, num_Clausulas, resfriamento;
+    int num_X, num_Clausulas;
 	ifstream entrada;
 	ofstream saida;
 	if (argc <= 2){
@@ -165,8 +107,6 @@ int main(int argc, char const *argv[]) {
     vector<bool> conf = init(num_X);
 	int retT = eval(SAT, conf);
 
-	double temp = TEMP_INICIAL;
-
     Solucao solucaoFinal;
 	solucaoFinal.num_Sat = retT;
 	solucaoFinal.conf = conf;
@@ -191,7 +131,7 @@ int main(int argc, char const *argv[]) {
 	// for (int i = 0; i < solucaoFinal.conf.size(); i++){
 	// 	cerr << (solucaoFinal.conf[i] ? "_":"1");
 	// } cerr << endl;
-	cout << "Satisfeito " << solucaoFinal.num_Sat << " de " << num_X << " cláusulas.\n";
+	cout << "Satisfeito " << solucaoFinal.num_Sat << " de " << num_Clausulas << " clausulas.\n";
 // */
 
     return 0;
