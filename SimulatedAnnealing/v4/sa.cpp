@@ -242,7 +242,7 @@ int main(int argc, char const *argv[]) {
 	// for (int i = 0; i < solucaoFinal.conf.size(); i++){
 	// 	cerr << (solucaoFinal.conf[i] ? "_":"1");
 	// } cerr << endl;
-	cout << "Satisfeito " << solucaoFinal.num_Sat << " de " << num_Clausulas << " cláusulas.\n";
+	cout << "Satisfeito " << solucaoFinal.num_Sat << " de " << num_Clausulas << " clausulas.\n";
 
     return 0;
 }
