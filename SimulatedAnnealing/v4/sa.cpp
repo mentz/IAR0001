@@ -234,7 +234,8 @@ int main(int argc, char const *argv[]) {
 			solucaoFinal.num_Sat = retT;
 		}
 		// printf("%d %d\n", i, retT);
-		if(ret == num_Clausulas) break;
+		saida << i << " " << retT << "\n";
+		//if(ret == num_Clausulas) break;
     }
 
 	// cerr << "####################################################\n" << endl;
@@ -243,6 +244,5 @@ int main(int argc, char const *argv[]) {
 	// 	cerr << (solucaoFinal.conf[i] ? "_":"1");
 	// } cerr << endl;
 	cout << "Satisfeito " << solucaoFinal.num_Sat << " de " << num_Clausulas << " clausulas.\n";
-
     return 0;
 }
