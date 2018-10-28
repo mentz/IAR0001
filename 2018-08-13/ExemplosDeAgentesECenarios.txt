@@ -1,0 +1,29 @@
+Jogo de Damas:
+	Medida de desempenho:
+		Número de peças inimigas capturadas relacionado com o menor número de jogadas e o menor número de suas peças perdidas.
+	Ambiente:
+		Tabuleiro, conjunto de peças (brancas, pretas e rainhas dessas).
+	Sensores:
+		Posição de todas as damas (peças) do jogo.
+	Atuadores:
+		Movimentação das suas peças.
+
+Táxi automatizado:
+	Medida de desempenho:
+		Caminho percorrido (distância) sem colisões ou desrespeito às leis de trânsito. Menor peso para uma velocidade adequada ao caminho e situação.
+	Ambiente:
+		Ruas (vias de largura delimitada), carros (simular trânsito), pedestres, clima (se chove, se é dia/noite), semáforos, placas de trânsito.
+	Sensores:
+		Sensoriamento básico do carro (óleo, combustível, velocidade, temperatura do motor), distância de objetos próximos (evitar colisões), posição global (GPS), posição local (posição na rua), observação de placas de trânsito e semáforos, condições de trânsito próximas (para seleção do melhor caminho), condições climáticas (chovendo precisa ir mais lento), chamadas de táxi (pedestre abana a mão ou chama por celular), sensor de luminosidade (acendimento de faróis), sinalização dos outros veículos.
+	Atuadores:
+		Direção, aceleração e frenagem do veículo, receber passageiro, receber rotas, cobrar o passageiro, acionamento de sinalização e equipamentos do veículo.
+
+Jogo de palavras cruzadas:
+	Medidas de desempenho:
+		Completar as palavras no menor tempo.
+	Ambiente:
+		Palavras cruzadas (tabuleiro?).
+	Sensores:
+		Ver o leiaute (posições) do tabuleiro, as perguntas/contexto de cada palavra, as letras pré-posicionadas.
+	Atuadores:
+		Escrever e apagar letras.
