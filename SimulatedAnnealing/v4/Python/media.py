@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+#! coding: utf-8
+
 tamanhos = ['20', '100', '250']
 temp_inicial = '10.0'
 temp_final = '0.00001'
