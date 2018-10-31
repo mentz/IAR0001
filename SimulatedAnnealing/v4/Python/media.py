@@ -14,9 +14,24 @@ for tam in tamanhos:
                 valor = int(line.split()[1])
                 vetor[idx] += valor
         for i in range(250000):
-            vetor[i] //= 10
+            vetor[i] /= 10
         path_saida = "../Saidas_Media/sa_media_" + tam + "_" + str(tipo_temperatura) + "_" + temp_inicial + '_' + temp_final + ".dat"
-        print("Fazendo a media do " + tam + "_" + str(tipo_temperatura))
-        with open(path_saida, 'a') as arq_saida:
+        print("Fazendo a media do SA com " + tam + "_" + str(tipo_temperatura))
+        with open(path_saida, 'w') as arq_saida:
             for i in range(250000):
                 arq_saida.write(str(i + 1) + " " + str(vetor[i]) + "\n")
+
+    vetor = [0 for _ in range(250000)]
+    for i in range(10):
+        path = '../Saidas/rs_' + tam + "_" + str(i) + '.dat'
+        arq = open(path)
+        for idx, line in enumerate(arq.readlines()):
+            valor = int(line.split()[1])
+            vetor[idx] += valor
+    for i in range(250000):
+        vetor[i] /= 10
+    path_saida = "../Saidas_Media/rs_media_" + tam + ".dat"
+    print("Fazendo a media do RS com " + tam)
+    with open(path_saida, 'w') as arq_saida:
+        for i in range(250000):
+            arq_saida.write(str(i + 1) + " " + str(vetor[i]) + "\n")

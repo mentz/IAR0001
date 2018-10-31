@@ -49,25 +49,18 @@ double CS0 (int iteracao){
 double CS1 (int iteracao){
     return (TEMP_INICIAL * pow(TEMP_FINAL / TEMP_INICIAL, iteracao / NUM_ITERACOES));
 }
-
-// COM PROBLEMA:
 double CS2 (int iteracao){
     double A = (TEMP_INICIAL - TEMP_FINAL) * (NUM_ITERACOES + 1) / NUM_ITERACOES;
     double B = TEMP_INICIAL - A;
     return  ((A / (double)(iteracao + 1)) + B);
 }
-
-// COM PROBLEMA:
 double CS3 (int iteracao){
     double A = log(TEMP_INICIAL - TEMP_FINAL)/log(NUM_ITERACOES);
     return (TEMP_INICIAL - pow(iteracao, A));
 }
-
-// COM PROBLEMA:
 double CS4 (int iteracao){
     return ((TEMP_INICIAL - TEMP_FINAL) / (1.0 + exp(3 * (iteracao - NUM_ITERACOES / 2.0))) + TEMP_FINAL);
 }
-
 double CS5 (int iteracao){
     return (0.5 * (TEMP_INICIAL - TEMP_FINAL) * (1 + cos((iteracao * acos(-1)) / NUM_ITERACOES)) + TEMP_FINAL);
 }
