@@ -24,5 +24,27 @@ t1="0.00001"
 # done
 
 cd Python
-python3 media.py
-python3 plot.py
+# python3 media.py
+# python3 plot.py
+
+# Gerar boxplots
+rm -rf ../Saidas/bp_data
+mkdir -p ../Saidas/bp_data
+
+for entr in 20 100 250
+do
+	for cs in `seq 0 9`
+	do
+		for i in `seq 0 9`
+		do
+			# printf "uf%d_1 - SA CS%d #%d: " $entr $cs `expr $i + 1`
+			tail -n1 ../Saidas/sa_${entr}_${cs}_${t0}_${t1}_${i}.dat >> ../Saidas/bp_data/sa_${entr}_cs${cs}.dat
+		done
+	done
+	for i in `seq 0 9`; do
+		# printf "uf%d_1 - RS #%d: " $entr `expr $i + 1`
+        tail -n1 ../Saidas/rs_${entr}_${i}.dat >> ../Saidas/bp_data/rs_${entr}.dat
+	done
+done
+
+python3 boxplot.py
