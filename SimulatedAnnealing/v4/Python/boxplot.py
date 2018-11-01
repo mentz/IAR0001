@@ -23,11 +23,8 @@ for tam in tamanhos:
 				c += 1
 
 		pl.boxplot(yar, sym='', meanline=True)
-		# pl.boxplot(yar)
 		pl.ylim([min(yar) - 0.5, topos[tam] + 0.5])
-		# pl.xlim([1, NUM_ITERACOES])
-		# pl.ylabel("Cláusulas satisfeitas")
-		# pl.xlabel("Iteração")
+		pl.ylabel("Cláusulas satisfeitas")
 		pl.title('uf' + tam + '_' + str(topos[tam]) + ' com Simulated Annealing, função CS' + str(i))
 		pl.savefig('Imagens/boxplot_sa_' + tam + "_cs" + str(i) + ".png")
 		pl.clf()
@@ -46,11 +43,8 @@ for tam in tamanhos:
 	
 
 		pl.boxplot(yar, sym='', meanline=True)
-		# pl.plot(xar, yar)
 		pl.ylim([min(yar) - 0.5, topos[tam] + 0.5])
-		# pl.xlim([1, NUM_ITERACOES])
 		pl.ylabel("Cláusulas satisfeitas")
-		# pl.xlabel("Iteração")
 		pl.title('uf' + tam + '_' + str(topos[tam]) + ' com Random Search')
 		pl.savefig('Imagens/boxplot_rs_' + tam + ".png")
 		pl.clf()
