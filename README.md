@@ -1,2 +1,2 @@
 # IAR0001
-Códigos privaados
+Desenvolvimento de trabalhos e notas de aula na matéria de Inteligência Artificial
